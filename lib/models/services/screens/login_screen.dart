@@ -39,8 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (error != null) {
       setState(() => _errorMessage = error);
     }
-    // On success, the AuthWrapper StreamBuilder in main.dart automatically
-    // navigates to TaskListScreen — no manual navigation needed here.
+   
   }
 
   @override

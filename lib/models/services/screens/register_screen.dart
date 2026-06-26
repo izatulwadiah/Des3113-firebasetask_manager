@@ -43,8 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (error != null) {
       setState(() => _errorMessage = error);
     } else {
-      // Registration also signs the user in automatically (Firebase default).
-      // AuthWrapper will route to TaskListScreen; just pop this screen.
+      
       Navigator.pop(context);
     }
   }

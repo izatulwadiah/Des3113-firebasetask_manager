@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (error != null) {
       setState(() => _errorMessage = error);
     }
-    // On success, AuthWrapper's StreamBuilder auto-navigates to TaskListScreen.
+
   }
 
   @override

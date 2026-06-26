@@ -7,7 +7,7 @@ class AuthService {
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // Returns null on success, or an error message string on failure.
+  
   Future<String?> register(String email, String password) async {
     try {
       await _auth.createUserWithEmailAndPassword(

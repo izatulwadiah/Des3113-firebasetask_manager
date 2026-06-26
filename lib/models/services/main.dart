@@ -25,8 +25,7 @@ class MyTaskManagerApp extends StatelessWidget {
   }
 }
 
-// Listens to Firebase auth state and automatically shows the right screen.
-// Logged in -> TaskListScreen. Logged out -> LoginScreen.
+
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
