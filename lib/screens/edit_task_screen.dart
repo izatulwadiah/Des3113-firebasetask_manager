@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_background.dart';
+import '../widgets/glass_card.dart';
 
 class EditTaskScreen extends StatefulWidget {
   final Task task;
@@ -86,56 +88,62 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Task')),
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+      appBar: AppBar(
+        title: const Text('Edit Task'),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: AppBackground(
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextField(
-                  controller: _titleController,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
-                    labelText: 'Task Title',
-                    prefixIcon: Icon(Icons.title_rounded),
+            child: GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _titleController,
+                    style: const TextStyle(color: AppColors.textPrimary),
+                    decoration: const InputDecoration(
+                      labelText: 'Task Title',
+                      prefixIcon: Icon(Icons.title_rounded),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _descController,
-                  maxLines: 5,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    alignLabelWithHint: true,
-                    prefixIcon: Icon(Icons.notes_rounded),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _descController,
+                    maxLines: 5,
+                    style: const TextStyle(color: AppColors.textPrimary),
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      alignLabelWithHint: true,
+                      prefixIcon: Icon(Icons.notes_rounded),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 28),
-                _isSaving
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: CircularProgressIndicator(
-                            color: AppColors.primary,
+                  const SizedBox(height: 24),
+                  _isSaving
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
                           ),
+                        )
+                      : ElevatedButton.icon(
+                          onPressed: _updateTask,
+                          icon: const Icon(Icons.check_rounded),
+                          label: const Text('Update Task'),
                         ),
-                      )
-                    : ElevatedButton.icon(
-                        onPressed: _updateTask,
-                        icon: const Icon(Icons.check_rounded),
-                        label: const Text('Update Task'),
-                      ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: _confirmDelete,
-                  icon: const Icon(Icons.delete_outline_rounded),
-                  label: const Text('Delete Task'),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: _confirmDelete,
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    label: const Text('Delete Task'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

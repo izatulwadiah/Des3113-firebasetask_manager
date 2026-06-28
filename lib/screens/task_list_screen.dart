@@ -5,6 +5,7 @@ import '../models/task_model.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_background.dart';
 import 'add_task_screen.dart';
 import 'edit_task_screen.dart';
 
@@ -16,81 +17,225 @@ class TaskListScreen extends StatelessWidget {
     final authService = AuthService();
     final firestoreService = FirestoreService();
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final todayLabel = DateFormat('EEEE, d MMMM').format(DateTime.now());
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Tasks'),
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.logout_rounded, size: 18),
-            ),
-            tooltip: 'Logout',
-            onPressed: () => authService.logout(),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: StreamBuilder<List<Task>>(
-        stream: firestoreService.getTasks(userId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            );
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error: ${snapshot.error}',
-                style: const TextStyle(color: AppColors.danger),
-              ),
-            );
-          }
+      body: AppBackground(
+        child: SafeArea(
+          child: StreamBuilder<List<Task>>(
+            stream: firestoreService.getTasks(userId),
+            builder: (context, snapshot) {
+              final isLoading =
+                  snapshot.connectionState == ConnectionState.waiting;
+              final tasks = snapshot.data ?? [];
 
-          final tasks = snapshot.data ?? [];
-          if (tasks.isEmpty) {
-            return const _EmptyState();
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
-            itemCount: tasks.length,
-            itemBuilder: (context, index) {
-              final task = tasks[index];
-              return _TaskCard(
-                key: ValueKey(task.id),
-                task: task,
-                index: index,
-                onDelete: () => firestoreService.deleteTask(task.id),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => EditTaskScreen(task: task),
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                todayLabel,
+                                style: const TextStyle(
+                                  fontSize: 12.5,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Your Tasks',
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.06),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.logout_rounded, size: 18),
+                          ),
+                          tooltip: 'Logout',
+                          onPressed: () => authService.logout(),
+                        ),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                    child: Row(
+                      children: [
+                        _CountChip(label: 'All', count: tasks.length),
+                        const Spacer(),
+                        _AddTaskPill(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AddTaskScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
+                          )
+                        : snapshot.hasError
+                            ? Center(
+                                child: Text(
+                                  'Error: ${snapshot.error}',
+                                  style: const TextStyle(color: AppColors.danger),
+                                ),
+                              )
+                            : tasks.isEmpty
+                                ? const _EmptyState()
+                                : ListView.builder(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      20,
+                                      4,
+                                      20,
+                                      32,
+                                    ),
+                                    itemCount: tasks.length,
+                                    itemBuilder: (context, index) {
+                                      final task = tasks[index];
+                                      return _TaskCard(
+                                        key: ValueKey(task.id),
+                                        task: task,
+                                        index: index,
+                                        onDelete: () => firestoreService
+                                            .deleteTask(task.id),
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  EditTaskScreen(task: task),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                  ),
+                ],
               );
             },
-          );
-        },
+          ),
+        ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddTaskScreen()),
-          );
-        },
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Task'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    );
+  }
+}
+
+class _CountChip extends StatelessWidget {
+  final String label;
+  final int count;
+  const _CountChip({required this.label, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withOpacity(0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '$count',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddTaskPill extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AddTaskPill({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add_rounded, color: Colors.white, size: 18),
+              SizedBox(width: 4),
+              Text(
+                'Add Task',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -108,9 +253,10 @@ class _EmptyState extends StatelessWidget {
           Container(
             width: 100,
             height: 100,
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.06),
               shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
             child: const Icon(
               Icons.checklist_rtl_rounded,
@@ -195,37 +341,28 @@ class _TaskCardState extends State<_TaskCard>
       child: SlideTransition(
         position: _slide,
         child: Container(
-          margin: const EdgeInsets.only(bottom: 14),
+          margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.border),
+            color: Colors.white.withOpacity(0.045),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.09)),
           ),
           child: Material(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
             child: InkWell(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(20),
               onTap: widget.onTap,
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Row(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 4,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
                             task.title,
                             style: const TextStyle(
                               fontSize: 16,
@@ -233,53 +370,53 @@ class _TaskCardState extends State<_TaskCard>
                               color: AppColors.textPrimary,
                             ),
                           ),
-                          if (task.description.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              task.description,
-                              style: const TextStyle(
-                                fontSize: 13.5,
-                                color: AppColors.textSecondary,
-                              ),
+                        ),
+                        const SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: widget.onDelete,
+                          child: Container(
+                            width: 28,
+                            height: 28,
+                            decoration: const BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
                             ),
-                          ],
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.access_time_rounded,
-                                size: 13,
-                                color: AppColors.textSecondary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                DateFormat(
-                                  'd MMM, h:mm a',
-                                ).format(task.createdAt),
-                                style: const TextStyle(
-                                  fontSize: 11.5,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
+                            child: const Icon(
+                              Icons.close_rounded,
+                              size: 15,
+                              color: Colors.white,
+                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.danger.withOpacity(0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.delete_outline_rounded,
-                          size: 18,
-                          color: AppColors.danger,
+                    if (task.description.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        task.description,
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          color: AppColors.textSecondary,
                         ),
                       ),
-                      onPressed: widget.onDelete,
+                    ],
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.access_time_rounded,
+                          size: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Added ${DateFormat('d MMM, h:mm a').format(task.createdAt)}',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

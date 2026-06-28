@@ -6,7 +6,6 @@ class FirestoreService {
     'tasks',
   );
 
-  // READ — only tasks belonging to the logged-in user
   Stream<List<Task>> getTasks(String userId) {
     return _tasksRef
         .where('userId', isEqualTo: userId)
@@ -18,7 +17,7 @@ class FirestoreService {
         );
   }
 
-  // CREATE
+  
   Future<void> addTask(String title, String description, String userId) {
     return _tasksRef.add({
       'title': title,
@@ -28,7 +27,7 @@ class FirestoreService {
     });
   }
 
-  // UPDATE
+  
   Future<void> updateTask(String taskId, String title, String description) {
     return _tasksRef.doc(taskId).update({
       'title': title,
@@ -36,7 +35,7 @@ class FirestoreService {
     });
   }
 
-  // DELETE
+  
   Future<void> deleteTask(String taskId) {
     return _tasksRef.doc(taskId).delete();
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_background.dart';
+import '../widgets/glass_card.dart';
 
 class AddTaskScreen extends StatefulWidget {
   const AddTaskScreen({super.key});
@@ -45,9 +47,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Task')),
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+      appBar: AppBar(
+        title: const Text('Add Task'),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: AppBackground(
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
@@ -55,12 +61,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(
-                  width: 64,
-                  height: 64,
-                  margin: const EdgeInsets.only(bottom: 24),
+                  width: 60,
+                  height: 60,
+                  margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
                     gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.4),
@@ -72,43 +78,50 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   child: const Icon(
                     Icons.note_add_rounded,
                     color: Colors.white,
-                    size: 30,
+                    size: 28,
                   ),
                 ),
-                TextField(
-                  controller: _titleController,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
-                    labelText: 'Task Title',
-                    prefixIcon: Icon(Icons.title_rounded),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _descController,
-                  maxLines: 5,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    alignLabelWithHint: true,
-                    prefixIcon: Icon(Icons.notes_rounded),
-                  ),
-                ),
-                const SizedBox(height: 28),
-                _isSaving
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: CircularProgressIndicator(
-                            color: AppColors.primary,
-                          ),
+                GlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextField(
+                        controller: _titleController,
+                        style: const TextStyle(color: AppColors.textPrimary),
+                        decoration: const InputDecoration(
+                          labelText: 'Task Title',
+                          prefixIcon: Icon(Icons.title_rounded),
                         ),
-                      )
-                    : ElevatedButton.icon(
-                        onPressed: _saveTask,
-                        icon: const Icon(Icons.check_rounded),
-                        label: const Text('Save Task'),
                       ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _descController,
+                        maxLines: 5,
+                        style: const TextStyle(color: AppColors.textPrimary),
+                        decoration: const InputDecoration(
+                          labelText: 'Description',
+                          alignLabelWithHint: true,
+                          prefixIcon: Icon(Icons.notes_rounded),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _isSaving
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            )
+                          : ElevatedButton.icon(
+                              onPressed: _saveTask,
+                              icon: const Icon(Icons.check_rounded),
+                              label: const Text('Save Task'),
+                            ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
